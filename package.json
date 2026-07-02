@@ -33,6 +33,8 @@
     "cross-env": "^10.1.0",
     "nx": "23.0.1",
     "prettier": "^3.8.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "webpack": "^5.101.3",
