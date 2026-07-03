@@ -1,3 +1,4 @@
+import { PrintTestForm } from '@/features/printer/components/PrintTestForm';
 import Link from 'next/link';
 
 export default function PrinterTesterPage() {
@@ -10,12 +11,13 @@ export default function PrinterTesterPage() {
             <section className="card">
                 <h1>Tester de impresora térmica</h1>
 
-                <p className="description">
-                    Este módulo se implementará después del lector de código de barras.
-                    Aquí probaremos impresión de tickets, recibos, cortes de papel y
-                    comandos ESC/POS.
+                <p>
+                    Prueba local para imprimir tickets desde el backend hacia la impresora
+                    térmica instalada en Windows.
                 </p>
             </section>
+
+            <PrintTestForm />
         </main>
     );
 }

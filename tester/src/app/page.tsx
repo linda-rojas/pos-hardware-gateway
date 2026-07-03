@@ -13,7 +13,7 @@ const modules = [
     description:
       'Prueba impresión de tickets, recibos y comandos para impresora térmica.',
     href: '/printer',
-    status: 'Próximamente',
+    status: 'Disponible',
   },
   {
     title: 'Cajón monedero',

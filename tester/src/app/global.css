@@ -183,3 +183,42 @@ body {
 .back-link:hover {
   text-decoration: underline;
 }
+
+.printer-form {
+  display: grid;
+  gap: 14px;
+}
+
+.printer-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.printer-form input {
+  padding: 14px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.printer-form button {
+  width: fit-content;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.printer-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success-message {
+  color: #166534;
+  font-weight: 700;
+}
