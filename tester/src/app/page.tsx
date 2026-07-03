@@ -20,7 +20,7 @@ const modules = [
     description:
       'Prueba apertura del cajón mediante impresora o conexión directa.',
     href: '/cash-drawer',
-    status: 'Próximamente',
+    status: 'Disponible',
   },
   {
     title: 'Báscula USB',

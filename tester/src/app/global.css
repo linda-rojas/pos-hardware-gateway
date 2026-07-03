@@ -222,3 +222,39 @@ body {
   color: #166534;
   font-weight: 700;
 }
+
+.device-form {
+  display: grid;
+  gap: 14px;
+}
+
+.device-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.device-form input,
+.device-form select {
+  padding: 14px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 16px;
+  background: white;
+}
+
+.device-form button {
+  width: fit-content;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.device-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
