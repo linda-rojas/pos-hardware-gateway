@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ScaleReadForm } from '../../features/scale/components/ScaleReadForm';
 
 export default function ScaleTesterPage() {
     return (
@@ -7,14 +8,16 @@ export default function ScaleTesterPage() {
                 ← Volver al panel
             </Link>
 
-            <section className="card">
+            <section className="hero">
                 <h1>Tester de báscula USB</h1>
 
-                <p className="description">
-                    Este módulo se implementará después. Aquí probaremos lectura de peso
-                    desde báscula USB, serial o HID.
+                <p>
+                    Prueba local para leer el peso desde una báscula conectada por USB y
+                    expuesta como puerto serial en Windows.
                 </p>
             </section>
+
+            <ScaleReadForm />
         </main>
     );
 }

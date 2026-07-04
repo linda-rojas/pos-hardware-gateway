@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { BarcodeModule } from './modules/barcode/barcode.module';
 import { PrinterModule } from './modules/printer/printer.module';
 import { CashDrawerModule } from './modules/cash-drawer/cash-drawer.module';
+import { ScaleModule } from './modules/scale/scale.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CashDrawerModule } from './modules/cash-drawer/cash-drawer.module';
     BarcodeModule,
     PrinterModule,
     CashDrawerModule,
+    ScaleModule,
   ],
 })
 export class AppModule { }

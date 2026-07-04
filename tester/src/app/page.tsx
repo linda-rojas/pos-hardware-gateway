@@ -27,7 +27,7 @@ const modules = [
     description:
       'Prueba lectura de peso desde báscula conectada por USB, serial o HID.',
     href: '/scale',
-    status: 'Próximamente',
+    status: 'Disponible',
   },
 ];
 
