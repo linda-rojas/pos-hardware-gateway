@@ -31,12 +31,20 @@ export class ScaleController {
 
     @Post('read')
     async read(@Body() dto: ReadScaleDto) {
-        const reading = await this.readScaleUseCase.execute(dto);
-
-        return {
-            success: true,
-            message: 'Scale weight read successfully',
-            data: reading,
-        };
+        try {
+            const reading = await this.readScaleUseCase.execute(dto);
+            return {
+                success: true,
+                message: 'Scale weight read successfully',
+                data: reading,
+            };
+        } catch (error: any) {
+            // Return a graceful response instead of throwing — avoids flooding logs
+            return {
+                success: false,
+                message: error?.message ?? 'Scale read failed',
+                data: null,
+            };
+        }
     }
 }
