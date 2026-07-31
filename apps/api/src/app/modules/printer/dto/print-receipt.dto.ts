@@ -44,6 +44,22 @@ export class ReceiptLineDto {
   @IsBoolean()
   @IsOptional()
   blank?: boolean;
+
+  /**
+   * Imagen en base64 (PNG o JPG).
+   * Si está presente, se imprime centrada como raster ESC/POS.
+   * Ignora `text`, `bold`, `doubleSize`, `align`.
+   */
+  @IsString()
+  @IsOptional()
+  imageBase64?: string;
+
+  /**
+   * Ancho máximo de la imagen en píxeles al que se redimensionará antes de imprimir.
+   * Por defecto: 384 (ancho útil en impresoras de 80mm a 203dpi).
+   */
+  @IsOptional()
+  imageWidth?: number;
 }
 
 export class PrintReceiptDto {

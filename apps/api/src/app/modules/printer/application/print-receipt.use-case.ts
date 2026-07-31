@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrintReceiptDto, ReceiptLineDto } from '../dto/print-receipt.dto';
 import { WindowsRawPrinterAdapter } from '../../cash-drawer/infrastructure/windows-raw-printer.adapter';
+import { Jimp } from 'jimp';
 
 /**
  * ESC/POS byte constants
@@ -36,6 +37,9 @@ const OPEN_DRAWER = [ESC, 0x70, 0x00, 0x19, 0xfa];
 const RECEIPT_WIDTH = 48;
 const DIVIDER_CHAR = '-';
 
+/** Default max image width in pixels for 80mm printer at 203dpi */
+const DEFAULT_IMAGE_WIDTH = 384;
+
 @Injectable()
 export class PrintReceiptUseCase {
   constructor(
@@ -53,9 +57,14 @@ export class PrintReceiptUseCase {
       bytes.push(...OPEN_DRAWER);
     }
 
-    // 3. Render each line
+    // 3. Render each line — image lines are async, rest are sync
     for (const line of dto.lines) {
-      bytes.push(...this.renderLine(line));
+      if (line.imageBase64) {
+        const imgBytes = await this.renderImage(line.imageBase64, line.imageWidth ?? DEFAULT_IMAGE_WIDTH);
+        bytes.push(...imgBytes);
+      } else {
+        bytes.push(...this.renderLine(line));
+      }
     }
 
     // 4. Feed a few lines so the last line is visible above the cutter
@@ -116,6 +125,93 @@ export class PrintReceiptUseCase {
     if (line.bold) bytes.push(...BOLD_OFF);
 
     return bytes;
+  }
+
+  /**
+   * Converts a base64 image to ESC/POS GS v 0 raster bitmap bytes.
+   *
+   * Steps:
+   *  1. Decode base64 → Buffer
+   *  2. Load with Jimp, resize to maxWidth keeping aspect ratio
+   *  3. Convert each pixel to 1-bit (threshold at 128)
+   *  4. Pack 8 pixels per byte (MSB first) into raster rows
+   *  5. Prepend GS v 0 header with width/height
+   *
+   * GS v 0 format:
+   *   GS 0x76 0x30 m xL xH yL yH [data]
+   *   m=0 (normal), xL/xH = bytes per row (width/8), yL/yH = rows (height)
+   */
+  private async renderImage(base64: string, maxWidth: number): Promise<number[]> {
+    try {
+      // Strip data URI prefix if present (e.g. "data:image/png;base64,...")
+      const raw = base64.includes(',') ? base64.split(',')[1] : base64;
+      const buffer = Buffer.from(raw, 'base64');
+
+      // Load image with Jimp
+      const img = await Jimp.fromBuffer(buffer);
+
+      // Resize to maxWidth if wider, maintaining aspect ratio
+      if (img.width > maxWidth) {
+        const ratio = maxWidth / img.width;
+        const newHeight = Math.round(img.height * ratio);
+        img.resize({ w: maxWidth, h: newHeight });
+      }
+
+      const imgWidth = img.width;
+      const imgHeight = img.height;
+
+      // ESC/POS requires width to be a multiple of 8
+      const bytesPerRow = Math.ceil(imgWidth / 8);
+
+      // GS v 0 header: m=0 (normal density)
+      const xL = bytesPerRow & 0xff;
+      const xH = (bytesPerRow >> 8) & 0xff;
+      const yL = imgHeight & 0xff;
+      const yH = (imgHeight >> 8) & 0xff;
+
+      const bytes: number[] = [];
+
+      // Center the image
+      bytes.push(...ALIGN_CENTER);
+
+      // GS v 0 command
+      bytes.push(GS, 0x76, 0x30, 0x00, xL, xH, yL, yH);
+
+      // Rasterize: scan row by row, pack 8 pixels per byte (1=dark, 0=light)
+      for (let y = 0; y < imgHeight; y++) {
+        for (let byteX = 0; byteX < bytesPerRow; byteX++) {
+          let byte = 0;
+          for (let bit = 0; bit < 8; bit++) {
+            const x = byteX * 8 + bit;
+            if (x < imgWidth) {
+              const rgba = img.getPixelColor(x, y);
+              // Extract RGB from RGBA int (jimp stores as 0xRRGGBBAA)
+              const r = (rgba >>> 24) & 0xff;
+              const g = (rgba >>> 16) & 0xff;
+              const b = (rgba >>> 8) & 0xff;
+              const a = rgba & 0xff;
+              // Luminance — treat transparent pixels as white
+              const lum = a < 128 ? 255 : Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+              // Dark pixel (lum < 128) → bit = 1
+              if (lum < 128) {
+                byte |= (0x80 >> bit);
+              }
+            }
+            // Pixels beyond imgWidth are padded as white (bit=0)
+          }
+          bytes.push(byte);
+        }
+      }
+
+      // Reset alignment to left after image
+      bytes.push(...ALIGN_LEFT);
+      bytes.push(LF);
+
+      return bytes;
+    } catch {
+      // If image processing fails, skip silently — don't crash the receipt
+      return [LF];
+    }
   }
 
   /**
